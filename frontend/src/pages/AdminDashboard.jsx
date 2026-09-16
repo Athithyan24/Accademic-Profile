@@ -73,12 +73,21 @@ export default function AdminDashboard() {
   const handleCreateStaff = async (e) => {
     e.preventDefault();
     try {
+      if (!staffForm.departmentId || !String(staffForm.departmentId).trim()) {
+        showNotification('error', 'Please select a department before creating a staff account.');
+        return;
+      }
+
       const formData = new FormData();
 
       // 1. Append standard text fields
       Object.keys(staffForm).forEach((key) => {
         if (key !== 'profilePic' && key !== 'documentProof') {
-          formData.append(key, staffForm[key]);
+          const value = staffForm[key];
+          if (key === 'departmentId' && (!value || !String(value).trim())) {
+            return;
+          }
+          formData.append(key, value ?? '');
         }
       });
 

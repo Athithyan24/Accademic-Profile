@@ -50,21 +50,36 @@ export const createStaff = async (req, res) => {
       experience,
       qualifications,
       skills,
-      awards,
-      profilePic,
-      documentProof
-    } = req.body;
+      awards
+    } = req.body; // profilePic and documentProof are removed from here!
+
+    const normalizedDepartmentId = departmentId && String(departmentId).trim();
+    if (!normalizedDepartmentId) {
+      return res.status(400).json({ message: 'Please select a department for the staff member.' });
+    }
+
+    // 1. Extract file paths from Multer's req.files object
+    const profilePicPath = req.files?.profilePic ? req.files.profilePic[0].path : '';
+    const documentProofPath = req.files?.documentProof ? req.files.documentProof[0].path : '';
 
     const existingUser = await User.findOne({ username });
     if (existingUser) return res.status(400).json({ message: "Username already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    let parsedExperience = [];
+    if (experience) {
+      try {
+        parsedExperience = typeof experience === 'string' ? JSON.parse(experience || '[]') : experience;
+      } catch {
+        parsedExperience = [];
+      }
+    }
 
     const staff = await User.create({
       username,
       password: hashedPassword,
       role: 'staff',
-      department: departmentId,
+      department: normalizedDepartmentId,
       staffDetails: {
         fullName,
         phone,
@@ -72,17 +87,19 @@ export const createStaff = async (req, res) => {
         address,
         dob,
         dateOfJoining,
-        experience: typeof experience === 'string' ? JSON.parse(experience || '[]') : experience,
+        // Ensure experience parses correctly from the stringified FormData
+        experience: parsedExperience,
         qualifications: Array.isArray(qualifications) ? qualifications : qualifications?.split(',').map(s => s.trim()),
         skills: Array.isArray(skills) ? skills : skills?.split(',').map(s => s.trim()),
         awards: Array.isArray(awards) ? awards : awards?.split(',').map(s => s.trim()),
-        profilePic,
-        documentProof
+        profilePic: profilePicPath,       // Save the local path
+        documentProof: documentProofPath  // Save the local path
       }
     });
 
     res.status(201).json({ message: "Staff created successfully", staff });
   } catch (error) {
+    console.error("Error creating staff:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };

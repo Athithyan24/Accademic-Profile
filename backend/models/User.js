@@ -31,8 +31,8 @@ const userSchema = new mongoose.Schema({
     qualifications: [{ type: String }],
     skills: [{ type: String }],
     awards: [{ type: String }],
-    profilePic: { type: String },     // URL or file path
-    documentProof: { type: String }   // URL or file path (PDF/Image)
+    profilePic: { type: String },     
+    documentProof: { type: String }   
   },
 
   // --- EXTENDED STUDENT DETAILS ---
@@ -50,24 +50,29 @@ const userSchema = new mongoose.Schema({
     aadhaarNumber: { type: String },
     bankAccountNo: { type: String },
     passbookPic: { type: String },
-    tcDoc: { type: String, required: false }, // Optional transfer certificate
+    tcDoc: { type: String, required: false },
     bloodGroup: { type: String },
     dob: { type: Date },
     dateOfAdmission: { type: Date },
     sslcTotal: { type: Number },
-    hscTotal: { type: Number }
+    hscTotal: { type: Number },
+    // --- NEW CERTIFICATE FIELDS ---
+    communityCert: { type: String },
+    incomeCert: { type: String },
+    nativityCert: { type: String },
+    birthCert: { type: String },
+    adharCert: { type: String }
   },
 
-  academicYear: { type: String, default: null }, // Auto-calculated from admission date
+  academicYear: { type: String, default: null },
 }, { timestamps: true });
 
 // Auto-calculate Academic Year for Students before saving
-userSchema.pre('save', function (next) {
+userSchema.pre('save', function () {
   if (this.role === 'student' && this.studentDetails?.dateOfAdmission) {
     const admissionYear = new Date(this.studentDetails.dateOfAdmission).getFullYear();
-    this.academicYear = `${admissionYear}-${admissionYear + 4}`; // 4-Year Academic Span
+    this.academicYear = `${admissionYear}-${admissionYear + 4}`; 
   }
-  next();
 });
 
 export default mongoose.model('User', userSchema);

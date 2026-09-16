@@ -3,16 +3,17 @@ import {
   createStudent, 
   getStudents, 
   deleteStudent, 
-  addMark 
+  addMark,
+  getStaffProfile
 } from '../controllers/staffController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Enforce staff-only access
 router.use(protect, authorizeRoles('staff'));
 
-// Student Routes
+router.get('/profile', getStaffProfile);
+
 router.route('/students')
   .post(createStudent)
   .get(getStudents);
@@ -20,7 +21,6 @@ router.route('/students')
 router.route('/students/:id')
   .delete(deleteStudent);
 
-// Marks Routes
 router.post('/marks', addMark);
 
 export default router;
